@@ -1,7 +1,9 @@
 import { reserveStock, releaseStock, createOrder } from "../lib/db-client.js";
 import { fetchProduct } from "../lib/db-client.js";
+import { cors } from "../lib/cors.js";
 
 export default async function handler(req, res) {
+  if (cors(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }

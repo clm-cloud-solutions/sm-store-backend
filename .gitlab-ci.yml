@@ -9,7 +9,7 @@
 
 stages:
   - deploy
-  - notify
+  # - notify  # Using webhooks directly instead
 
 deploy_production:
   stage: deploy
@@ -30,30 +30,30 @@ deploy_production:
   only:
     - main
 
-notify_uptimebolt:
-  stage: notify
-  image: alpine:3.19
-  needs: [deploy_production]
-  before_script:
-    - apk add --no-cache curl git jq
-  script:
-    - |
-      CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | jq -R -s 'split("\n") | map(select(length > 0))' 2>/dev/null || echo '[]')
-
-      curl -sf -X POST "${UPTIMEBOLT_API_URL}/api/v1/deployments/notify" \
-        -H "Authorization: Bearer ${UPTIMEBOLT_API_KEY}" \
-        -H "Content-Type: application/json" \
-        -d "{
-          \"commitSha\": \"${CI_COMMIT_SHA}\",
-          \"commitMessage\": $(echo "$CI_COMMIT_MESSAGE" | jq -Rs .),
-          \"commitAuthor\": \"${GITLAB_USER_NAME}\",
-          \"branch\": \"${CI_COMMIT_REF_NAME}\",
-          \"environment\": \"production\",
-          \"status\": \"success\",
-          \"changedFiles\": ${CHANGED_FILES},
-          \"deploymentUrl\": \"${DEPLOY_URL:-$CI_PIPELINE_URL}\",
-          \"deployedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
-        }"
-  when: on_success
-  only:
-    - main
+# notify_uptimebolt:
+#   stage: notify
+#   image: alpine:3.19
+#   needs: [deploy_production]
+#   before_script:
+#     - apk add --no-cache curl git jq
+#   script:
+#     - |
+#       CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | jq -R -s 'split("\n") | map(select(length > 0))' 2>/dev/null || echo '[]')
+#
+#       curl -sf -X POST "${UPTIMEBOLT_API_URL}/api/v1/deployments/notify" \
+#         -H "Authorization: Bearer ${UPTIMEBOLT_API_KEY}" \
+#         -H "Content-Type: application/json" \
+#         -d "{
+#           \"commitSha\": \"${CI_COMMIT_SHA}\",
+#           \"commitMessage\": $(echo "$CI_COMMIT_MESSAGE" | jq -Rs .),
+#           \"commitAuthor\": \"${GITLAB_USER_NAME}\",
+#           \"branch\": \"${CI_COMMIT_REF_NAME}\",
+#           \"environment\": \"production\",
+#           \"status\": \"success\",
+#           \"changedFiles\": ${CHANGED_FILES},
+#           \"deploymentUrl\": \"${DEPLOY_URL:-$CI_PIPELINE_URL}\",
+#           \"deployedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+#         }"
+#   when: on_success
+#   only:
+#     - main

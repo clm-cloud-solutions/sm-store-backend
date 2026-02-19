@@ -1,7 +1,9 @@
 import { getConfig } from "../lib/config.js";
 import { checkDbHealth } from "../lib/db-client.js";
+import { cors } from "../lib/cors.js";
 
 export default async function handler(req, res) {
+  if (cors(req, res)) return;
   const startTime = Date.now();
   const config = getConfig();
   const dbUrl = config.storeDbUrl;

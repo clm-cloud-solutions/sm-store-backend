@@ -1,4 +1,7 @@
+import { cors } from "../lib/cors.js";
+
 export default function handler(req, res) {
+  if (cors(req, res)) return;
   res.status(200).json({
     service: "store-backend",
     status: "ok",
