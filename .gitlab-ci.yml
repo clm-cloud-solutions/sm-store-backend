@@ -1,0 +1,59 @@
+# GitLab Self-Managed CI/CD Pipeline — Store Backend API
+#
+# Required CI/CD Variables:
+#   VERCEL_TOKEN        — Vercel personal access token
+#   VERCEL_ORG_ID       — Vercel org/team ID
+#   VERCEL_PROJECT_ID   — Vercel project ID
+#   UPTIMEBOLT_API_URL  — e.g. https://api.uptimebolt.io
+#   UPTIMEBOLT_API_KEY  — JWT or API key
+
+stages:
+  - deploy
+  - notify
+
+deploy_production:
+  stage: deploy
+  image: node:20-alpine
+  environment:
+    name: production
+    url: https://$CI_PROJECT_NAME.vercel.app
+  script:
+    - npm install -g vercel
+    - vercel pull --yes --environment=production --token=$VERCEL_TOKEN
+    - vercel build --prod --token=$VERCEL_TOKEN
+    - DEPLOY_URL=$(vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN)
+    - echo "DEPLOY_URL=$DEPLOY_URL" >> deploy.env
+    - echo "Deployed to $DEPLOY_URL"
+  artifacts:
+    reports:
+      dotenv: deploy.env
+  only:
+    - main
+
+notify_uptimebolt:
+  stage: notify
+  image: alpine:3.19
+  needs: [deploy_production]
+  before_script:
+    - apk add --no-cache curl git jq
+  script:
+    - |
+      CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD 2>/dev/null | jq -R -s 'split("\n") | map(select(length > 0))' 2>/dev/null || echo '[]')
+
+      curl -sf -X POST "${UPTIMEBOLT_API_URL}/api/v1/deployments/notify" \
+        -H "Authorization: Bearer ${UPTIMEBOLT_API_KEY}" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"commitSha\": \"${CI_COMMIT_SHA}\",
+          \"commitMessage\": $(echo "$CI_COMMIT_MESSAGE" | jq -Rs .),
+          \"commitAuthor\": \"${GITLAB_USER_NAME}\",
+          \"branch\": \"${CI_COMMIT_REF_NAME}\",
+          \"environment\": \"production\",
+          \"status\": \"success\",
+          \"changedFiles\": ${CHANGED_FILES},
+          \"deploymentUrl\": \"${DEPLOY_URL:-$CI_PIPELINE_URL}\",
+          \"deployedAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"
+        }"
+  when: on_success
+  only:
+    - main

@@ -1,0 +1,6 @@
+{
+  "name": "uptimebolt-sm-store-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "E-commerce backend API for UptimeBolt deploy correlation testing (GitLab Self-Managed)"
+}
