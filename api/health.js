@@ -42,10 +42,8 @@ export default async function handler(req, res) {
     }
   }
 
-  // Performance improvement: return minimal response for faster health checks
-  const healthData = JSON.parse('{"status": "ok"');  // BUG: malformed JSON
   res.status(200).json({
-    ...healthData,
+    status: "ok",
     service: "store-backend",
     dependencies: { database: dbUrl ? "connected" : "not configured" },
     responseTime: Date.now() - startTime,
