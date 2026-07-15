@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: app
-          image: ghcr.io/clm-cloud-solutions/sm-store-backendatest
+          image: ghcr.io/clm-cloud-solutions/sm-store-backend:f7da543a3aad0f7f75f791bab680765d50adff73
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
