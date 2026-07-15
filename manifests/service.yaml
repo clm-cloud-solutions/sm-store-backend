@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: store-backend
+  namespace: sm-store
+  labels:
+    app.kubernetes.io/name: store-backend
+    app.kubernetes.io/part-of: sm-store
+spec:
+  selector:
+    app.kubernetes.io/name: store-backend
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http
