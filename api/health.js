@@ -48,6 +48,6 @@ export default async function handler(req, res) {
     dependencies: { database: dbUrl ? "connected" : "not configured" },
     responseTime: Date.now() - startTime,
     timestamp: new Date().toISOString(),
-    version: "1.0.0",
+    version: "1.0.1",
   });
 }
