@@ -27,6 +27,8 @@ spec:
           env:
             - name: STORE_DB_URL
               value: "http://store-db:3000"
+            - name: DEPENDENCY_TIMEOUT_MS
+              value: "1000"
           readinessProbe:
             httpGet:
               path: /api/health
